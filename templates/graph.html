@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BlueCoLab's Sonification Stacked Graph</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <!-- Embed the Plotly Graph -->
+    <div id="graph-container">
+        {{ plot|safe }}
+    </div>
+
+    <!-- Embed the Audio Files -->
+    <audio id="Salinity" autoplay loop>
+        <source src="{{ url_for('static', filename='audio/salinity.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <audio id="pH" autoplay loop>
+        <source src="{{ url_for('static', filename='audio/ph.mp3') }}" type="audio/mpeg">
+    </audio>
+
+   <audio id="Temperature(F)" autoplay loop>
+        <source src="{{ url_for('static', filename='audio/temperature(f).mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <audio id="Turbidity" autoplay loop>
+        <source src="{{ url_for('static', filename='audio/turbidity.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <audio id="Dissolved Oxygen" autoplay loop>
+        <source src="{{ url_for('static', filename='audio/dissolvedoxygen.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <audio id="Conductivity" autoplay loop>
+        <source src="{{ url_for('static', filename='audio/conductivity.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <button onclick="muteAll()">Mute ALL Sounds</button>
+    <script>
+        // Fetch the plot data from the server
+        // NyWw$5R85wXg7nB
+        fetch('/plot')
+            .then(response => response.json())
+            .then(data => {
+                var plotData = JSON.parse(data.plot);
+                Plotly.newPlot('plot', plotData.data, plotData.layout);
+            })
+            .catch(error => console.error('An error occurred:', error));
+        var plotData = JSON.parse('{{ plot|safe }}');
+        Plotly.newPlot('graph-container', plotData).then(function(plot) {
+            plot.on('plotly_relayout', function(eventdata) {
+                // Get all audio elements
+                var audioElements = document.getElementsByTagName("audio");
+
+                // Iterate through each trace (adjust logic as needed for your data)
+                for (var i = 0; i < audioElements.length; i++) {
+                    // Logic to determine if the corresponding trace is visible
+                    var isVisible = true; // Adjust this logic based on eventdata
+
+                    // If the trace is visible, unmute the corresponding audio, else mute it
+                    audioElements[i].muted = !isVisible;
+                }
+            });
+        });
+
+        function muteAll() {
+            var audioElements = document.getElementsByTagName("audio");
+            var allMuted = true;
+
+            // Check if all are already muted
+            for (var i = 0; i < audioElements.length; i++) {
+                if (!audioElements[i].muted) {
+                    allMuted = false;
+                    break;
+                }
+            }
+
+            // Toggle the mute state for all
+            for (var i = 0; i < audioElements.length; i++) {
+                audioElements[i].muted = !allMuted;
+            }
+        }
+    </script>
+
+</body>
+</html>
