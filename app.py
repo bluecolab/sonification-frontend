@@ -20,7 +20,7 @@ from plotnine import ggplot
 
 app = Flask(__name__)
 
-@app.route('/plot')
+@app.route('/')
 def index():
     # This will read the Excel file and load the data into a pandas dataframe
     df = pd.read_excel(
@@ -105,8 +105,8 @@ def index():
         yaxis=dict(title='Sensors', showgrid=False, showticklabels=False),
         barmode='stack')
 
-    plot_json = json.dumps(fig, cls=PlotlyJSONEncoder)
-    return render_template('graph.html')
+    plot_html = fig.to_html(include_plotlyjs='cdn')
+    return render_template('graph.html', plot=plot_html)
 
 if __name__ == '__main__':
     app.run(debug=True)
