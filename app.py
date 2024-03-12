@@ -1,19 +1,11 @@
-from flask import Flask, render_template
-import plotly
-import plotly.graph_objects as go
-import pandas as pd
-from plotnine import *
 import matplotlib.pyplot as plt
-import pygame
-from pydub import AudioSegment
-from plotnine import options, ggplot, theme
-import plotly.offline as pyo
-from flask import jsonify
+import pandas as pd
+from flask import Flask, render_template
+from plotnine import *
+from plotnine import theme
 
 plt.switch_backend('agg')
 import plotly.express as px
-from plotly.utils import PlotlyJSONEncoder
-import json
 from plotnine import ggplot
 
 
@@ -23,8 +15,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     # This will read the Excel file and load the data into a pandas dataframe
-    df = pd.read_excel(
-        r'/Users/louisamoquete/Library/Containers/com.microsoft.Excel/Data/Desktop/School/Coding Projects/BlueCoLab/Book1.xlsx')
+    df = pd.read_csv('data.csv')
     print(df)
 
     df_melted = df.melt(
