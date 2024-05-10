@@ -10,13 +10,12 @@ from plotnine import ggplot
 
 
 
-app = Flask(__name__)
+app = Flask(__name__,static_url_path='/static')
 
 @app.route('/')
 def index():
     # This will read the Excel file and load the data into a pandas dataframe
     df = pd.read_csv('data.csv')
-    print(df)
 
     df_melted = df.melt(
         id_vars=['timestamp'],
@@ -24,14 +23,6 @@ def index():
         var_name='Variable',
         value_name='Value'
     )
-
-    # Sal range: 0.20 - 0.47
-    # pH range: 6.87 - 9.09
-    # Temp range: 3.17 - 29.14 (Celsius)
-    # TempF range: 37.71 - 84.45
-    # Turb range: 0.71 - 286.50
-    # DOpct range:3.67 - 178.42
-    # Cond range:317.00 - 994.83
 
     df_melted['Original_Value'] = df_melted['Value']
 
@@ -44,9 +35,6 @@ def index():
 
     desired_order = ['Salinity', 'pH', 'Temperature(F)', 'Turbidity', 'Dissolved Oxygen', 'Conductivity']
 
-    # Define the custom color palette in HEX format (replace these with your desired colors)
-    custom_color_palette = ['#FF9F1C', '#8FE1F4', '#169873', '#2081C3', '#EFE9AE', '#B57BA6']
-
     color_dict = {'Salinity': '#FF9F1C',
                   'Dissolved Oxygen': '#8FE1F4',
                   'Temperature(F)': '#169873',
@@ -54,50 +42,30 @@ def index():
                   'pH': '#EFE9AE',
                   'Turbidity': '#B57BA6'}
 
-    custom_theme = theme(
-        # Background and grid
-        panel_background=element_rect(fill='lightgray', color='white'),
-        panel_grid_major=element_line(color='white', size=0.1),
-        panel_grid_minor=element_blank(),
-
-        # Axis
-        axis_text=element_text(color='black', size=10, family='Arial'),
-        axis_line=element_line(size=0.5),
-        axis_ticks_major=element_line(size=0.5),
-        axis_ticks_minor=element_blank(),
-
-        # Legend
-        legend_title=element_text(size=12),
-        legend_key=element_blank(),
-
-        # Plot title
-        plot_title=element_text(size=16, hjust=0.5),
-    )
-
-    ggplot(data=df, mapping=aes(x='timestamp', y='value', fill='Group')) + \
-    geom_bar(stat="identity", position=position_dodge()) + \
-    theme_classic()
-
-    p = (
-            ggplot(df_melted, aes(x='timestamp', y='Value', fill='Variable')) +
-            geom_area(stat='identity', position='stack') +
-            ylim(0, 1000) +
-            facet_wrap('Variable', nrow=len(df_melted['Variable'].unique())) +
-            custom_theme +
-            scale_fill_manual(values=custom_color_palette)  # Apply custom color palette
-    )
-
     fig = px.area(df_melted, x='timestamp', y='Value', color='Variable', title='Stacked Sonification Graph',
                   color_discrete_map=color_dict,  # Apply custom color palette
                   hover_data={'Original_Value': False}, category_orders={'Variable': desired_order})
 
     fig.update_layout(
-        xaxis=dict(title='Timestamp', showgrid=False),
+        xaxis=dict(title='Timestamp', showgrid=False, nticks = 10),
         yaxis=dict(title='Sensors', showgrid=False, showticklabels=False),
-        barmode='stack')
+        barmode='stack', paper_bgcolor="#030227", legend_font_color="white", font_color="white",
+        title_font_family="Balto", legend_tracegroupgap=0,
+        margin_b=5, margin_l=25, margin_r=25, margin_t=30)
+
+    #fig.legend(bbox_to_anchor=(1.1, 1.05))
+
+     #Extract data parameters
+    #data_params = {
+    #    'y': [item.legendgroup for item in fig.data],
+    #                    # Add other data parameters as needed
+    #}
+
+    print(fig)
 
     plot_html = fig.to_html(include_plotlyjs='cdn')
     return render_template('graph.html', plot=plot_html)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
