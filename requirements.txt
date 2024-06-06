@@ -1,0 +1,11 @@
+# Requirements for Sonification Flask
+# Prereqs: pip -> setuptool -> wheel
+
+#cmd prompt run: pip install -r requirements.txt
+
+Flask==2.1.1
+# Matplotlib requires Microsoft Visual C++ 2008 or 2010
+matplotlib==3.9.0
+pandas==2.2.2
+plotly==5.6.0
+plotnine==0.13.6
