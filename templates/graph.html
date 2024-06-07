@@ -6,6 +6,30 @@
     <title>BlueCoLab's Sonification Stacked Graph</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <style>
+            @font-face {
+                font-family: Roboto;
+                src: url(../static/fonts/Roboto/Roboto-Medium.ttf);
+            }
+
+            * {
+                font-family: Roboto;
+                font-weight: 400;
+            }
+
+            header {
+                display: flex;
+                align-items: center;
+            }
+            header h1 {
+                margin-right: auto;
+            }
+            header div {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
         /* Add this style block to change the background color and adapt text colors */
         body {
             background-color: black; /* Set the background to black */
@@ -14,31 +38,77 @@
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center center;
-            transform: scale(1.2, 1.2);
+            margin: 2% 5% 2% 5%;
         }
 
         /* You may want to add other style rules to ensure that all text and elements are visible on a black background. */
 
         /* This is to ensure that the play button and the title have enough contrast against the black background */
-        #playStart h1, #control {
+        #playStart h1{
             color: white; /* Set the text color to white for contrast */
+        }
+
+        #control {
+            width: 3em;
         }
 
         /* Style for the graph container if needed */
         #graph-container {
-            padding-top: 160px;
-            margin: 0px 150px;
+            margin-top: 2%;
             /*transform: scale(1.2, 1.2)
             /* Add styles here if needed */
         }
 
-        .main-svg {
-            border-radius: 25px;
+        #track-form {
+            overflow: auto;
+            height: 200px;
+            width: 700px;
         }
+
+        #track-form::-webkit-scrollbar {
+            display: none;
+        }
+
+        .input:hover {
+        }
+
+        .input {
+            border: none;
+            text-align: left;
+            background-color: none;
+            background: none;
+            /* border: 5px solid red; */
+            color: white;
+        }
+
+        .formbtn {
+            display: flex;
+            width: 683px;
+            height: 60px;
+            border-top: 1px solid;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2% 0 2%;
+        }
+
+        .formbtn p {
+            /* border: 5px solid red; */
+        }
+
     </style>
 </head>
 
 <body>
+    <header>
+        <h1>TURN DATA TO MUSIC WITH BLUE COLAB. PRESS <strong>PLAY</strong> TO START THE EXPERIENCE!</h1>
+        <div onclick="toggleAudio()" id="control">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                <path
+                    d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" fill="white"/>
+            </svg>
+        </header>
     <!-- Embed the Plotly Graph -->
     <div id="graph-container">
         {{ plot|safe }}
@@ -79,15 +149,17 @@
             Visibility</button>
     </div> -->
 
-        <div id="playStart" style="display: flex; justify-content: center; align-items: center; padding: 20px">
-        <h1 style="margin-right: 10px;">Press Play to Start Experience</h1>
-        <div onclick="toggleAudio()" style="background-color: transparent;" id="control"><svg width="50px"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                <path
-                    d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" />
-            </svg></div>
+    <div>
+        <h3>Click and play more awesome tracks here!</h3>
+        <form id="track-form" method="post" action="/">
+            {% for file in files %}
+                <div class="formbtn">
+                    <input class="input" type="submit" name="name" value="{{ file.name }}"><p>{{ file.date }}</p></input>
+                </div>
+            {% endfor %}
+        </form>
     </div>
+
 
 
 
@@ -133,10 +205,12 @@
                 audio.play();
             }
         }
+        
+
         function toggleAudio() {
             for (let audio of audioElements) {
-                let play = '<svg width="50px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"/></svg>'
-                let pause = '<svg width="50px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg>'
+                let play = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z" fill="white" /></svg>'
+                let pause = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" fill="white" /></svg>'
 
                 if (audio.paused) {
                     // FIX THIS SO WE DONT USE .INNERHTML!!!

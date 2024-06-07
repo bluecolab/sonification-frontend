@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt  # Importing matplotlib for plotting
 import pandas as pd  # Importing pandas for data manipulation
-from flask import Flask, render_template  # Importing Flask for web app and render_template for rendering HTML templates
+from flask import Flask, render_template, request, redirect  # Importing Flask for web app and render_template for rendering HTML templates
 from plotnine import *  # Importing plotnine for ggplot functionality
 from plotnine import theme  # Importing theme module from plotnine for customizing plots
-
+import os
+import datetime as dt
 # Switching the backend for matplotlib to 'agg' to enable plotting in a non-interactive backend
 plt.switch_backend('agg')
 
@@ -12,10 +13,23 @@ import plotly.express as px  # Importing plotly.express for creating interactive
 # Initializing the Flask application
 app = Flask(__name__, static_url_path='/static')
 
-@app.route('/')
+baseFolderPath = './data'
+
+def getTimeStampString(tsec: float) -> str:
+    time_obj = dt.datetime.fromtimestamp(tsec)
+    time_str = dt.datetime.strftime(time_obj, '%Y-%m-%d')
+    return time_str
+
+
+@app.route('/', methods=["GET","POST"])
 def index():
+    if request.method == 'POST':
+        selected_file = request.form.get('name')
+        new_file = './data/' + str(selected_file)
+        df = pd.read_csv(new_file)
+    else:
     # Reading the CSV file and loading the data into a pandas dataframe
-    df = pd.read_csv('./data/data.csv')
+        df = pd.read_csv('./data/data.csv')
 
     # Melting the dataframe to a long format for easier plotting using pandas
     df_melted = df.melt(
@@ -61,6 +75,7 @@ def index():
         category_orders={'Variable': desired_order}  # Setting the order of the categories
     )
 
+
     # Updating layout to customize the appearance of the plot using Plotly Express
     fig.update_layout(
         xaxis=dict(title='Timestamp', showgrid=False, nticks=10),
@@ -69,12 +84,16 @@ def index():
         paper_bgcolor="#030227",  # Setting background color
         legend_font_color="white",  # Setting legend font color
         font_color="white",  # Setting main font color
-        title_font_family="Balto",  # Setting title font family
+        title_font_family="Roboto",  # Setting title font family
         legend_tracegroupgap=0,  # Setting gap between legend items
-        margin_b=5,  # Setting bottom margin
+    title={
+        'y':.96,
+        'x':.46,
+        'xanchor': 'center'},
+        margin_b=10,  # Setting bottom margin
         margin_l=25,  # Setting left margin
         margin_r=25,  # Setting right margin
-        margin_t=30  # Setting top margin
+        margin_t=40  # Setting top margin
     )
 
     #fig.legend(bbox_to_anchor=(1.1, 1.05))
@@ -87,11 +106,18 @@ def index():
     # Printing the figure to the console for debugging purposes
     print(fig)
 
+    def file_object(inputed_file):
+        file = inputed_file.stat()
+        file_date = getTimeStampString(file.st_mtime)
+        return {'name': inputed_file.name, 'date': file_date}
+    file_names = [file_object(x) for x in os.scandir(baseFolderPath)] 
+
     # Converting the plot to HTML format to embed in the web page using Plotly
-    plot_html = fig.to_html(include_plotlyjs='cdn')
+    plot_html = fig.to_html(include_plotlyjs='cdn')   
     
     # Rendering the graph.html template and passing the plot HTML to it using Flask
-    return render_template('graph.html', plot=plot_html)
+    return render_template('graph.html', plot=plot_html, files=file_names)
+    
 
 # Running the Flask application
 if __name__ == '__main__':
