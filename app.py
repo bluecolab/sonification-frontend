@@ -15,7 +15,7 @@ app = Flask(__name__, static_url_path='/static')
 @app.route('/')
 def index():
     # Reading the CSV file and loading the data into a pandas dataframe
-    df = pd.read_csv('data.csv')
+    df = pd.read_csv('./data/data.csv')
 
     # Melting the dataframe to a long format for easier plotting using pandas
     df_melted = df.melt(
