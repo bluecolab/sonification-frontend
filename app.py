@@ -5,6 +5,7 @@ from plotnine import *  # Importing plotnine for ggplot functionality
 from plotnine import theme  # Importing theme module from plotnine for customizing plots
 import os
 import datetime as dt
+import re
 # Switching the backend for matplotlib to 'agg' to enable plotting in a non-interactive backend
 plt.switch_backend('agg')
 
@@ -25,7 +26,7 @@ def getTimeStampString(tsec: float) -> str:
 def index():
     if request.method == 'POST':
         selected_file = request.form.get('name')
-        new_file = './data/' + str(selected_file)
+        new_file = './data/' + str(selected_file) + '.csv'
         df = pd.read_csv(new_file)
     else:
     # Reading the CSV file and loading the data into a pandas dataframe
@@ -106,10 +107,13 @@ def index():
     # Printing the figure to the console for debugging purposes
     print(fig)
 
+    pattern = r"\\(.+)"
     def file_object(inputed_file):
         file = inputed_file.stat()
         file_date = getTimeStampString(file.st_mtime)
-        return {'name': inputed_file.name, 'date': file_date}
+        name_only = os.path.splitext(inputed_file)[0]
+        match = re.search(pattern, name_only)
+        return {'name': match.group(1), 'date': file_date}
     file_names = [file_object(x) for x in os.scandir(baseFolderPath)] 
 
     # Converting the plot to HTML format to embed in the web page using Plotly
