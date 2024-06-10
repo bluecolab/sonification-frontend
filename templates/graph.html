@@ -6,29 +6,27 @@
     <title>BlueCoLab's Sonification Stacked Graph</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <style>
-            @font-face {
-                font-family: Roboto;
-                src: url(../static/fonts/Roboto/Roboto-Medium.ttf);
-            }
-
-            * {
-                font-family: Roboto;
-                font-weight: 400;
-            }
-
-            header {
-                display: flex;
-                align-items: center;
-            }
-            header h1 {
-                margin-right: auto;
-            }
-            header div {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-            }
+        @font-face {
+            font-family: Roboto;
+            src: url(../static/fonts/Roboto/Roboto-Medium.ttf);
+        }
+        * {
+            font-family: Roboto, Arial, Helvetica, sans-serif;
+            font-weight: 400;
+        }
+        header {
+            display: flex;
+            align-items: center;
+        }
+        header h1 {
+            margin-right: auto;
+        }
+        header div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
 
         /* Add this style block to change the background color and adapt text colors */
         body {
@@ -55,14 +53,12 @@
         /* Style for the graph container if needed */
         #graph-container {
             margin-top: 2%;
-            /*transform: scale(1.2, 1.2)
-            /* Add styles here if needed */
         }
 
         #track-form {
             overflow: auto;
-            height: 200px;
-            width: 700px;
+            height: 12em;
+            width: 45%;
         }
 
         #track-form::-webkit-scrollbar {
@@ -76,22 +72,25 @@
         .input {
             border: none;
             text-align: left;
-            background-color: none;
             background: none;
             color: white;
-            width: 683px;
-            height: 60px;
+            width: 100%;
+            height: 1.5em;
             border-top: 1px solid;
             font-size: 2em;
         }
 
         .formbtn {
             display: flex;
-            width: 683px;
-            height: 60px;
-            justify-content: space-between;
             align-items: center;
-            /* padding: 0 2% 0 2%; */
+        }
+
+        #playSvg {
+            display: block;
+        }
+
+        #pauseSvg {
+            display: none;
         }
 
     </style>
@@ -101,12 +100,9 @@
     <header>
         <h1>TURN DATA TO MUSIC WITH BLUE COLAB. PRESS <strong>PLAY</strong> TO START THE EXPERIENCE!</h1>
         <div onclick="toggleAudio()" id="control">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 384 512"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                <path
-                    d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" fill="white"/>
-            </svg>
+            <!-- SVG's for play and pause SVG images -->
+            <svg id="playSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" fill="white"/></svg>
+            <svg id="pauseSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z" fill="white" /></svg>
         </header>
     <!-- Embed the Plotly Graph -->
     <div id="graph-container">
@@ -115,27 +111,27 @@
 
     <div>
         <!-- Embed the Audio Files -->
-        <audio id="Salinity" autoplay loop>
+        <audio id="Salinity" loop>
             <source src="{{ url_for('static', filename='audio/salinity.mp3') }}" type="audio/mpeg">
         </audio>
 
-        <audio id="pH" autoplay loop>
+        <audio id="pH" loop>
             <source src="{{ url_for('static', filename='audio/ph.mp3') }}" type="audio/mpeg">
         </audio>
 
-        <audio id="Temperature(F)" autoplay loop>
+        <audio id="Temperature(F)" loop>
             <source src="{{ url_for('static', filename='audio/temperature(f).mp3') }}" type="audio/mpeg">
         </audio>
 
-        <audio id="Turbidity" autoplay loop>
+        <audio id="Turbidity" loop>
             <source src="{{ url_for('static', filename='audio/turbidity.mp3') }}" type="audio/mpeg">
         </audio>
 
-        <audio id="Dissolved Oxygen" autoplay loop>
+        <audio id="Dissolved Oxygen" loop>
             <source src="{{ url_for('static', filename='audio/dissolvedoxygen.mp3') }}" type="audio/mpeg">
         </audio>
 
-        <audio id="Conductivity" autoplay loop>
+        <audio id="Conductivity" loop>
             <source src="{{ url_for('static', filename='audio/conductivity.mp3') }}" type="audio/mpeg">
         </audio>
     </div>
@@ -202,24 +198,22 @@
             }
         }
         
-
         function toggleAudio() {
             for (let audio of audioElements) {
-                let play = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z" fill="white" /></svg>'
-                let pause = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" fill="white" /></svg>'
-
                 if (audio.paused) {
-                    // FIX THIS SO WE DONT USE .INNERHTML!!!
-                    document.getElementById("control").innerHTML = play;
+                    document.getElementById("playSvg").style.display = "none";
+                    document.getElementById("pauseSvg").style.display = "block";
                     audio.play();
                 } else {
-                    document.getElementById("control").innerHTML = pause;
+                    document.getElementById("playSvg").style.display = "block";
+                    document.getElementById("pauseSvg").style.display = "none";
                     audio.pause();
                 }
 
 
             }
         }
+
         // Function to select all parameters
         function selectAll() {
             var update = {
@@ -250,7 +244,5 @@
             Plotly.restyle(plotlyGraph, update, indexArr);
         }
     </script>
-
 </body>
-
 </html>

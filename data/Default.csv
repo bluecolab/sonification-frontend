@@ -1,4 +1,4 @@
-﻿measurement,timestamp,Salinity,pH,Temperature(F),Turbidity,Dissolved Oxygen,Conductivity,sensors/Temp
+﻿measurement,timestamp,sensors__Sal,sensors__pH,sensors__Temp,sensors__Turb,sensors__DOpct,sensors__Cond,
 Ada,4/16/2022,0.34,9.08,56.97,14.2,178.42,540.24,13.87
 Ada,4/17/2022,0.35,8.94,57.38,25.1,157.78,562.7,14.1
 Ada,4/18/2022,0.36,8.7,54.95,11.65,138.76,564.62,12.75
