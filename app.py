@@ -76,7 +76,6 @@ def index():
         category_orders={'Variable': desired_order}  # Setting the order of the categories
     )
 
-
     # Updating layout to customize the appearance of the plot using Plotly Express
     fig.update_layout(
         xaxis=dict(title='Timestamp', showgrid=False, nticks=10),
@@ -88,6 +87,7 @@ def index():
         title_font_family="Roboto",  # Setting title font family
         legend_tracegroupgap=0,  # Setting gap between legend items
         title={'y':.96, 'x':.46, 'xanchor': 'center'},
+        plot_bgcolor = "#030227",
         margin_b=10,  # Setting bottom margin
         margin_l=25,  # Setting left margin
         margin_r=25,  # Setting right margin
