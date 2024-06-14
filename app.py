@@ -5,6 +5,9 @@ from plotnine import *  # Importing plotnine for ggplot functionality
 import os
 import datetime as dt
 import re
+from audiolazy_functions import str2midi, midi2str
+from midiutil import MIDIFile 
+
 # Switching the backend for matplotlib to 'agg' to enable plotting in a non-interactive backend
 plt.switch_backend('agg')
 
@@ -110,11 +113,17 @@ def index():
 
     file_names = [file_object(x) for x in os.scandir(base_folder_path)] 
 
+    add_time_to_csv(selected_file)
+    for data in desired_order:
+        convert_to_music(selected_file, data)
+    for data in desired_order:
+        os.system('ffmpeg -i /y ./static/audio/' + selected_file + '_' + data + '.mid -codec:a libmp3lame ./static/audio/' + selected_file + '_' + data + '.mp3')
+    
     # Converting the plot to HTML format to embed in the web page using Plotly
     plot_html = fig.to_html(include_plotlyjs='cdn')   
     
     # Rendering the graph.html template and passing the plot HTML to it using Flask
-    return render_template('graph.html', plot=plot_html, files=file_names)
+    return render_template('graph.html', plot=plot_html, files=file_names, current_file=selected_file)
 
 # Searches the data folder for file names and imports them
 # Return a object of the file name only (no extension ".csv")
@@ -129,6 +138,71 @@ def file_object(inputed_file):
     # return {'name': match.group(1), 'date': file_date}
     return {'name': match.group(1)}
 
+def add_time_to_csv(filename):
+    df = pd.read_csv('./data/' + filename + '.csv')  #load data as a pandas dataframe
+    time = []
+    for i in range(0, 294):
+        time.append(i)
+    df['time'] = time
+    df.to_csv('./data/' + filename + '.csv', index=False)
+
+def convert_to_music(filename, data):
+    df = pd.read_csv('./data/' + filename + '.csv')
+    df.head() #take a look at first 5 rows
+
+    ages = df['time'].values   #get age values in an array
+    diameters = df[data].values  #get diameter values in an array
+
+    times_myrs = max(ages) - ages  #measure time from 1st impact in data
+
+    myrs_per_beat = 5  #conversion factor: Myrs for each beat of music
+    t_data = times_myrs/myrs_per_beat #compress impact times from Myrs to beats
+
+    y_data = map_value(diameters, min(diameters), max(diameters), 0, 1) 
+
+    # y_scale = 0.5  #lower than 1 to spread out more evenly
+    # y_data = y_data**y_scale
+    note_names = ['C1','C2','G2',
+             'C3','E3','G3','A3','B3',
+             'D4','E4','G4','A4','B4',
+             'D5','E5','G5','A5','B5',
+             'D6','E6','F#6','G6','A6']
+    note_midis = [str2midi(n) for n in note_names] 
+    n_notes = len(note_midis)
+    midi_data = []
+    for i in range(len(y_data)):
+        note_index = round(map_value(y_data[i], 0, 1, n_notes-1, 0)) 
+        midi_data.append(note_midis[note_index])
+
+    vel_min,vel_max = 35,127   #minimum and maximum note velocity
+    vel_data = []
+    for i in range(len(y_data)):
+        note_velocity = round(map_value(y_data[i],0,1,vel_min, vel_max)) 
+        vel_data.append(note_velocity)
+
+    #create midi file object, add tempo
+    my_midi_file = MIDIFile(1) #one track 
+    my_midi_file.addTempo(track=0, time=0, tempo=60) 
+    #add midi notes
+    for i in range(len(t_data)):
+        my_midi_file.addNote(track=0, channel=0, time=t_data[i], pitch=midi_data[i], volume=vel_data[i], duration=4)
+    #create and save the midi file itself
+    with open('./static/audio/' + filename + '_' + data +'.mid', "wb") as f:
+        my_midi_file.writeFile(f)
+
+    # pygame.init()
+    # pygame.mixer.music.load(filename + '.mid')
+    # pygame.mixer.music.play()
+
+def map_value(value, min_value, max_value, min_result, max_result):
+    result = min_result + (value - min_value)/(max_value - min_value)*(max_result - min_result)
+    return result
+
+
+# def midi_to_wav(midi_file, output_wav):
+#     # Convert the output MIDI stream to WAV using pydub
+#     audio = AudioSegment.from_file('./static/audio/Default_sensors__pH.mid', format="midi")
+#     audio.export('./static/audio/Default_sensors__pH.wav', format="wav")
 
 # Running the Flask application
 if __name__ == '__main__':

@@ -1,12 +1,14 @@
 # Requirements for Sonification Flask
 # Prereqs: pip -> setuptools -> wheel
+#Requires installation of ffmpeg (for data convertion from midi to mp3)
 
 #cmd prompt run: pip install -r requirements.txt
-
 Flask==2.1.1
 # Matplotlib requires Microsoft Visual C++ 2008 or 2010
 matplotlib==3.9.0
+MIDIUtil==1.2.1
 pandas==2.2.2
 plotly==5.6.0
 plotnine==0.13.6
-werkzeug==2.0.3
+
+
