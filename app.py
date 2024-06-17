@@ -7,6 +7,7 @@ import datetime as dt
 import re
 from audiolazy_functions import str2midi, midi2str
 from midiutil import MIDIFile 
+import subprocess
 
 # Switching the backend for matplotlib to 'agg' to enable plotting in a non-interactive backend
 plt.switch_backend('agg')
@@ -108,17 +109,31 @@ def index():
     #                    # Add other data parameters as needed
     #}
 
-    # Printing the figure to the console for debugging purposes
-    print(fig)
-
     file_names = [file_object(x) for x in os.scandir(base_folder_path)] 
+    # Adds time from 1-294 to csv file (timestamp returns a string and convertion to int returns a large int)
+    # Check time, if time is in the csv file returns true else adds time into the file
+    list_of_column_names = list(df.columns)
+    if 'time' not in list_of_column_names:
+        print("time was not found, adding time now!!!!")
+        add_time_to_csv(selected_file)
+    else:
+        print("time was found, not adding time!!!!")
 
-    add_time_to_csv(selected_file)
+    mp3_files = [x for x in os.scandir('./static/audio/')]
+    print(mp3_files)
+    generate_mp3_files = False
     for data in desired_order:
-        convert_to_music(selected_file, data)
-    for data in desired_order:
-        os.system('ffmpeg -i /y ./static/audio/' + selected_file + '_' + data + '.mid -codec:a libmp3lame ./static/audio/' + selected_file + '_' + data + '.mp3')
-    
+        target_file = selected_file + '_' + data + '.mp3'
+        if any(x.name == target_file for x in mp3_files):
+            pass
+        else:
+            generate_mp3_files = True
+            
+    if generate_mp3_files == True:
+        for data in desired_order:
+            convert_to_music(selected_file, data)
+            subprocess.run(["ffmpeg", "-y", "-i", './static/audio/' + selected_file + '_' + data + '.mid', "-codec:a", "libmp3lame", './static/audio/' + selected_file + '_' + data + '.mp3'])
+
     # Converting the plot to HTML format to embed in the web page using Plotly
     plot_html = fig.to_html(include_plotlyjs='cdn')   
     
@@ -139,9 +154,10 @@ def file_object(inputed_file):
     return {'name': match.group(1)}
 
 def add_time_to_csv(filename):
+    # Reads csv file
     df = pd.read_csv('./data/' + filename + '.csv')  #load data as a pandas dataframe
     time = []
-    for i in range(0, 294):
+    for i in range(0, len(df)):
         time.append(i)
     df['time'] = time
     df.to_csv('./data/' + filename + '.csv', index=False)
@@ -197,12 +213,6 @@ def convert_to_music(filename, data):
 def map_value(value, min_value, max_value, min_result, max_result):
     result = min_result + (value - min_value)/(max_value - min_value)*(max_result - min_result)
     return result
-
-
-# def midi_to_wav(midi_file, output_wav):
-#     # Convert the output MIDI stream to WAV using pydub
-#     audio = AudioSegment.from_file('./static/audio/Default_sensors__pH.mid', format="midi")
-#     audio.export('./static/audio/Default_sensors__pH.wav', format="wav")
 
 # Running the Flask application
 if __name__ == '__main__':
