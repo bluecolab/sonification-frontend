@@ -8,6 +8,7 @@ import re
 from audiolazy_functions import str2midi, midi2str
 from midiutil import MIDIFile 
 import subprocess
+import fluidsynth
 
 # Switching the backend for matplotlib to 'agg' to enable plotting in a non-interactive backend
 plt.switch_backend('agg')
@@ -119,12 +120,12 @@ def index():
     else:
         print("time was found, not adding time!!!!")
 
-    mp3_files = [x for x in os.scandir('./static/audio/')]
-    print(mp3_files)
+    wav_files = [x for x in os.scandir('./static/audio/')]
+    print(wav_files)
     generate_mp3_files = False
     for data in desired_order:
-        target_file = selected_file + '_' + data + '.mp3'
-        if any(x.name == target_file for x in mp3_files):
+        target_file = selected_file + '_' + data + '.wav'
+        if any(x.name == target_file for x in wav_files):
             pass
         else:
             generate_mp3_files = True
@@ -132,7 +133,8 @@ def index():
     if generate_mp3_files == True:
         for data in desired_order:
             convert_to_music(selected_file, data)
-            subprocess.run(["ffmpeg", "-y", "-i", './static/audio/' + selected_file + '_' + data + '.mid', "-codec:a", "libmp3lame", './static/audio/' + selected_file + '_' + data + '.mp3'])
+        # for data in desired_order:
+        #     subprocess.run(["ffmpeg", "-y", "-i", './static/audio/' + selected_file + '_' + data + '.mid', "-codec:a", "libmp3lame", './static/audio/' + selected_file + '_' + data + '.mp3'])
 
     # Converting the plot to HTML format to embed in the web page using Plotly
     plot_html = fig.to_html(include_plotlyjs='cdn')   
@@ -164,8 +166,28 @@ def add_time_to_csv(filename):
 
 def convert_to_music(filename, data):
     df = pd.read_csv('./data/' + filename + '.csv')
-    df.head() #take a look at first 5 rows
 
+    # soundfont_path = './static/soundfont/Guitar.sf2'
+    match data:
+        case "sensors__pH":
+            soundfont_path = './static/soundfont/Flute.sf2'
+            tempo = 1
+        case "sensors__Cond":
+            soundfont_path = './static/soundfont/Solo Violin.sf2'
+            tempo = 3
+        case "sensors__DOpct":
+            soundfont_path = './static/soundfont/Tuba.sf2'
+            tempo = 2
+        case "sensors__Sal":
+            soundfont_path = './static/soundfont/Acoustic Guitar.sf2'
+            tempo = 1
+        case "sensors__Temp":
+            soundfont_path = './static/soundfont/Octave Choir.sf2'
+            tempo = 1
+        case "sensors__Turb":
+            soundfont_path = './static/soundfont/Acoustic Piano.sf2'
+            tempo = 2
+    
     ages = df['time'].values   #get age values in an array
     diameters = df[data].values  #get diameter values in an array
 
@@ -178,6 +200,9 @@ def convert_to_music(filename, data):
 
     # y_scale = 0.5  #lower than 1 to spread out more evenly
     # y_data = y_data**y_scale
+    # note_names = ['C2','D2','E2','G2','A2',
+    #          'C3','D3','E3','G3','A3',
+    #          'C4','D4','E4','G4','A4']
     note_names = ['C1','C2','G2',
              'C3','E3','G3','A3','B3',
              'D4','E4','G4','A4','B4',
@@ -190,7 +215,7 @@ def convert_to_music(filename, data):
         note_index = round(map_value(y_data[i], 0, 1, n_notes-1, 0)) 
         midi_data.append(note_midis[note_index])
 
-    vel_min,vel_max = 35,127   #minimum and maximum note velocity
+    vel_min,vel_max = 35,117   #minimum and maximum note velocity
     vel_data = []
     for i in range(len(y_data)):
         note_velocity = round(map_value(y_data[i],0,1,vel_min, vel_max)) 
@@ -198,14 +223,25 @@ def convert_to_music(filename, data):
 
     #create midi file object, add tempo
     my_midi_file = MIDIFile(1) #one track 
-    my_midi_file.addTempo(track=0, time=0, tempo=60) 
+    my_midi_file.addTempo(track=0, time=0, tempo=tempo) 
     #add midi notes
     for i in range(len(t_data)):
-        my_midi_file.addNote(track=0, channel=0, time=t_data[i], pitch=midi_data[i], volume=vel_data[i], duration=4)
+        my_midi_file.addNote(track=0, channel=0, time=t_data[i], pitch=midi_data[i], volume=vel_data[i], duration=2)
     #create and save the midi file itself
     with open('./static/audio/' + filename + '_' + data +'.mid', "wb") as f:
         my_midi_file.writeFile(f)
 
+    audio_path = './static/audio/' + filename + '_' + data + '.wav'
+        
+    command = [
+        'fluidsynth',
+        '-ni',  # non-interactive mode
+        '-F', audio_path,  # output file
+        soundfont_path,
+        './static/audio/' + filename + '_' + data +'.mid'
+    ]
+    
+    subprocess.run(command, check=True)
     # pygame.init()
     # pygame.mixer.music.load(filename + '.mid')
     # pygame.mixer.music.play()
