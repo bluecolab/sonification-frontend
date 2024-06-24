@@ -8,7 +8,6 @@ import re
 from audiolazy_functions import str2midi, midi2str
 from midiutil import MIDIFile 
 import subprocess
-import fluidsynth
 
 # Switching the backend for matplotlib to 'agg' to enable plotting in a non-interactive backend
 plt.switch_backend('agg')
@@ -200,9 +199,11 @@ def convert_to_music(filename, data):
 
     # y_scale = 0.5  #lower than 1 to spread out more evenly
     # y_data = y_data**y_scale
+
     # note_names = ['C2','D2','E2','G2','A2',
     #          'C3','D3','E3','G3','A3',
     #          'C4','D4','E4','G4','A4']
+
     note_names = ['C1','C2','G2',
              'C3','E3','G3','A3','B3',
              'D4','E4','G4','A4','B4',
@@ -215,7 +216,7 @@ def convert_to_music(filename, data):
         note_index = round(map_value(y_data[i], 0, 1, n_notes-1, 0)) 
         midi_data.append(note_midis[note_index])
 
-    vel_min,vel_max = 35,117   #minimum and maximum note velocity
+    vel_min,vel_max = 35,127   #minimum and maximum note velocity
     vel_data = []
     for i in range(len(y_data)):
         note_velocity = round(map_value(y_data[i],0,1,vel_min, vel_max)) 
@@ -233,15 +234,31 @@ def convert_to_music(filename, data):
 
     audio_path = './static/audio/' + filename + '_' + data + '.wav'
         
-    command = [
+    # Generate the audio file using FluidSynth
+    fluidsynth_command = [
         'fluidsynth',
         '-ni',  # non-interactive mode
         '-F', audio_path,  # output file
         soundfont_path,
-        './static/audio/' + filename + '_' + data +'.mid'
+        './static/audio/' + filename + '_' + data + '.mid'
     ]
     
-    subprocess.run(command, check=True)
+    subprocess.run(fluidsynth_command)
+    
+    # Trim the audio file at 3 minutes using FFmpeg
+    trimmed_audio_path = audio_path.replace('.wav', '_trimmed.wav')  # or any other appropriate filename
+    
+    ffmpeg_command = [
+        'ffmpeg',
+        '-i', audio_path,  # input file
+        '-t', '180',  # duration to trim
+        '-c', 'copy',  # copy codec
+        trimmed_audio_path  # output file
+    ]
+    
+    subprocess.run(ffmpeg_command)
+    
+
     # pygame.init()
     # pygame.mixer.music.load(filename + '.mid')
     # pygame.mixer.music.play()

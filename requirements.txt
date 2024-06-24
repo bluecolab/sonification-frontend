@@ -1,8 +1,7 @@
 # Requirements for Sonification Flask
 # Prereqs: pip -> setuptools -> wheel
 #Requires installation / system environmental path of ffmpeg and FluidSynth (for data convertion from midi to mp3)
-
-#cmd prompt run: pip install -r requirements.txt
+# FluidSynth: https://github.com/FluidSynth/fluidsynth/releases/tag/v2.3.5
 #cmd prompt run: pip install -r requirements.txt
 Flask==2.1.1
 # Matplotlib requires Microsoft Visual C++ 2008 or 2010

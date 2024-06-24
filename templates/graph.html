@@ -35,6 +35,7 @@
         .svg {
             width: 100%;
             height: 100%;
+            cursor: pointer;
         }
 
         #playSvg, #pauseSvg {
@@ -102,11 +103,29 @@
 
         #playSvg {
             display: block;
+            cursor: pointer;
         }
 
         #pauseSvg {
             display: none;
+            cursor: pointer;
         }
+
+        #progress-bar {
+            height: 359px;
+            border-right: 2px solid rgba(255, 0, 0, 0.747);
+            position: absolute;
+            z-index: 1;
+            margin: 40px 0px 10px 41px;
+            transition: width 0.1s linear;
+            background-color: rgba(128, 128, 128, 0.274);
+        }
+
+
+        /*         margin_b=10,  # Setting bottom margin
+        margin_l=25,  # Setting left margin
+        margin_r=25,  # Setting right margin
+        margin_t=40  # Setting top margin */
 
     </style>
 </head>
@@ -117,7 +136,7 @@
             <svg id="back" class="svg" viewBox="0 0 512 512" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="white"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <style type="text/css"> .st0{fill:#ffffff;} </style> <g id="Layer_1"></g> <g id="Layer_2"> <g> <path class="st0" d="M217,129.88c-6.25-6.25-16.38-6.25-22.63,0L79.61,244.64c-0.39,0.39-0.76,0.8-1.11,1.23 c-0.11,0.13-0.2,0.27-0.31,0.41c-0.21,0.28-0.42,0.55-0.62,0.84c-0.14,0.21-0.26,0.43-0.39,0.64c-0.14,0.23-0.28,0.46-0.41,0.7 c-0.13,0.24-0.24,0.48-0.35,0.73c-0.11,0.23-0.22,0.45-0.32,0.68c-0.11,0.26-0.19,0.52-0.28,0.78c-0.08,0.23-0.17,0.46-0.24,0.69 c-0.09,0.29-0.15,0.58-0.22,0.86c-0.05,0.22-0.11,0.43-0.16,0.65c-0.08,0.38-0.13,0.76-0.17,1.14c-0.02,0.14-0.04,0.27-0.06,0.41 c-0.11,1.07-0.11,2.15,0,3.22c0.01,0.06,0.02,0.12,0.03,0.18c0.05,0.46,0.12,0.92,0.21,1.37c0.03,0.13,0.07,0.26,0.1,0.39 c0.09,0.38,0.18,0.76,0.29,1.13c0.04,0.13,0.09,0.26,0.14,0.4c0.12,0.36,0.25,0.73,0.4,1.09c0.05,0.11,0.1,0.21,0.15,0.32 c0.17,0.37,0.34,0.74,0.53,1.1c0.04,0.07,0.09,0.14,0.13,0.21c0.21,0.38,0.44,0.76,0.68,1.13c0.02,0.03,0.04,0.06,0.06,0.09 c0.55,0.81,1.18,1.58,1.89,2.29l114.81,114.81c3.12,3.12,7.22,4.69,11.31,4.69s8.19-1.56,11.31-4.69c6.25-6.25,6.25-16.38,0-22.63 l-87.5-87.5h291.62c8.84,0,16-7.16,16-16s-7.16-16-16-16H129.51L217,152.5C223.25,146.26,223.25,136.13,217,129.88z"></path> </g> </g> </g></svg>
         </div>
         <h2>Turn data to music with Blue CoLab. Press play to start the experience!</h2>
-        <div onclick="toggleAudio()" id="control">
+        <div onclick="toggleAudio(); moveProgressBar();" id="control">
             <!-- SVG's for play and pause SVG images -->
             <svg class="svg" id="playSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" fill="white"/></svg>
             <svg class="svg" id="pauseSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z" fill="white" /></svg>
@@ -125,33 +144,34 @@
         </header>
     <!-- Embed the Plotly Graph -->
     <div id="graph-container">
-        {{ plot|safe }}
+        <div id="progress-bar"></div>
+        <div id="graph">{{ plot|safe }}</div>
     </div>
 
     <div>
         <!-- Embed the Audio Files -->
         <audio id="sensors__Sal" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Sal.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/Default_sensors__Sal_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__pH" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__pH.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/Default_sensors__pH_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__Cond" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Cond.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/Default_sensors__Cond_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__Turb" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Turb.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/Default_sensors__Turb_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__DOpc" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__DOpct.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/Default_sensors__DOpct_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__Cond" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Cond.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/Default_sensors__Cond_trimmed.wav') }}" type="audio/mp3">
         </audio>
     </div>
 
@@ -228,9 +248,44 @@
                     document.getElementById("pauseSvg").style.display = "none";
                     audio.pause();
                 }
-
-
             }
+        }
+        let current_position = 0;
+        const totalDuration = 181 * 1000; // 182 seconds = 3 minutes and 1 sec (conpensate for start time with 1sec)
+        const totalWidth = document.getElementById('graph-container').offsetWidth - 234;
+        let startTime = null;
+        function moveProgressBar() {
+            let pb = document.getElementById('progress-bar');
+            function animate(timestamp) {
+                if (!startTime) startTime = timestamp;
+                console.log("starttime: "+ startTime)
+                console.log("timestamp: "+ timestamp)
+                const elapsed = timestamp - startTime;
+                console.log("elapsed: "+ elapsed)
+                if (document.getElementById("pauseSvg").style.display === "block") {
+                    current_position = (elapsed / totalDuration) * totalWidth;
+                    if (current_position < totalWidth) {
+                        pb.style.width = current_position + 'px';
+                        requestAnimationFrame(animate);
+                    } else {
+                        pb.style.width = totalWidth + 'px';
+                    }
+                } else {
+                    startTime = timestamp - (current_position / totalWidth) * totalDuration;
+                    requestAnimationFrame(animate);
+                }
+                console.log("current: "+ current_position)
+                console.log("total: " + totalWidth)
+                if (current_position >= totalWidth) {
+                    current_position = 0;
+                    pb.style.width = 0;
+                    startTime = null;
+                    requestAnimationFrame(animate);
+                }
+            }
+                        console.log(current_position)
+            console.log(totalWidth)
+            requestAnimationFrame(animate);
         }
 
         // Function to select all parameters
