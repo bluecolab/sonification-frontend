@@ -3,7 +3,7 @@ import pandas as pd  # Importing pandas for data manipulation
 from flask import Flask, render_template, request # Importing Flask for web app and render_template for rendering HTML templates
 from plotnine import *  # Importing plotnine for ggplot functionality
 import os
-import datetime as dt
+import datetime as datetime
 import re
 from audiolazy_functions import str2midi, midi2str
 from midiutil import MIDIFile 
@@ -21,15 +21,20 @@ app = Flask(__name__, static_url_path='/static')
 base_folder_path = './data'
 
 # formats the dates to only have Year, month, and date (hours, minutes and seconds are excluded)
-def getTimeStampString(tsec: float) -> str:
-    time_obj = dt.datetime.fromtimestamp(tsec)
-    time_str = dt.datetime.strftime(time_obj, '%Y-%m-%d')
-    return time_str
+def getTimeStampString(date_str):
+    try:
+        datetime.datetime.strptime(date_str, "%m/%d/%Y")
+        return date_str
+    except:
+        date_obj = datetime.datetime.fromisoformat(date_str)
+        formatted_date = date_obj.strftime("%m/%d/%Y")
+        return formatted_date
 
 
 @app.route('/', methods=["GET","POST"])
 def index():
     if request.method == 'POST' or request.method == "GET":
+        global selected_file
         selected_file = request.form.get('name')
         if str(selected_file) == "None":
             selected_file = "Default"
@@ -148,11 +153,20 @@ def file_object(inputed_file):
     # import date of files
     # file = inputed_file.stat()
     # file_date = getTimeStampString(file.st_mtime)
+    df = pd.read_csv('./data/' + selected_file + '.csv')
+    date = df['timestamp'].values
+    start_date = getTimeStampString(date[0])
+    end_date = getTimeStampString(date[len(date)-1])
     name_only = os.path.splitext(inputed_file)[0]
     match = re.search(pattern, name_only)
-    # import date of file in the object
-    # return {'name': match.group(1), 'date': file_date}
-    return {'name': match.group(1)}
+    list_of_column_names = list(df.columns)
+    if 'description' in list_of_column_names:
+        description = df['description'].values
+        # import date of file in the object
+        return {'name': match.group(1), 'start': start_date, 'end': end_date, 'description': description[0]}
+    else:
+        # import date of file in the object
+        return {'name': match.group(1), 'start': start_date, 'end': end_date, 'description': "N/A"}
 
 def add_time_to_csv(filename):
     # Reads csv file
