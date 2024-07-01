@@ -71,6 +71,36 @@
             box-shadow: 0 0 30px rgb(0, 0, 0);
         }
 
+        #input {
+            display: flex;
+        }
+
+        #my-form {
+            display: flex;
+            width: 100%;
+        }
+
+        #my-form div fieldset {
+            border: none;
+        }
+
+        #file-selection {
+            flex: 1.25;
+        }
+
+        #file-selection input {
+            margin: 0;
+            padding: 0;
+        }
+
+        #file-selection input[type=radio]:checked:has(label) {
+            background-color: rgba(0, 0, 0, 0.24);
+        }
+
+        #music-selection {
+            flex: .75;
+        }
+
         #track-form {
             overflow: auto;
             height: 10em;
@@ -81,24 +111,33 @@
             display: none;
         }
 
-        .input:hover {
-            background-color: rgba(0, 0, 0, 0.281);
-        }
-
         .input {
             border: none;
             text-align: left;
             background: none;
             color: white;
-            width: 100%;
+            width: 90%;
             height: 1.5em;
             border-top: 1px solid;
-            font-size: 2em;
-        }
+            font-size: 1.5em;
+            cursor: pointer;
+        }        
 
         .formbtn {
             display: flex;
             align-items: center;
+        }
+
+        input[type=radio]:checked{
+            background-color: black;
+        }
+
+        .formbtn input[type=radio] {
+            cursor: pointer;
+            /* visibility: hidden; */
+            opacity: 1;
+            margin: 0;
+            padding: 0;
         }
 
         #playSvg {
@@ -121,17 +160,11 @@
             background-color: rgba(128, 128, 128, 0.274);
         }
 
-        #input {
-            display: flex;
-            
-        }
 
-        #input div {
-            width: 50%;
-        }
 
-        #description {
+        #description, .files {
             height: 100%;
+            flex: 1;
         }
 
         #inline {
@@ -156,8 +189,33 @@
 
         #slide {
             accent-color: #030227;
-            width: 50%;
+            width: 35%;
         }
+
+        .radio-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            flex: 1;
+            gap: 25px;
+        }
+
+        #music-choice {
+            height: 100%;
+        }
+
+        #music-choice div {
+            width: 100%;
+        }
+
+        #music-choice div input {
+            accent-color: #030227;
+            border-color: none;
+            outline: none;
+        }
+
+
 
     </style>
 </head>
@@ -183,27 +241,27 @@
     <div>
         <!-- Embed the Audio Files -->
         <audio id="sensors__Sal" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Sal_trimmed.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/' + current_file + '_' + instruments + '_sensors__Cond_trimmed.wav') }}" type="audio/mp3">        
         </audio>
 
         <audio id="sensors__pH" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__pH_trimmed.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/' + current_file + '_' + instruments + '_sensors__pH_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__Cond" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Cond_trimmed.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/' + current_file + '_' + instruments + '_sensors__Cond_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__Turb" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Turb_trimmed.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/' + current_file + '_' + instruments + '_sensors__Turb_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__DOpc" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__DOpct_trimmed.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/' + current_file + '_' + instruments + '_sensors__DOpct_trimmed.wav') }}" type="audio/mp3">
         </audio>
 
         <audio id="sensors__Cond" loop>
-            <source src="{{ url_for('static', filename='audio/Default_sensors__Cond_trimmed.wav') }}" type="audio/mp3">
+            <source src="{{ url_for('static', filename='audio/' + current_file + '_' + instruments + '_sensors__Cond_trimmed.wav') }}" type="audio/mp3">
         </audio>
     </div>
 
@@ -216,16 +274,36 @@
     </div> -->
 
     <div id="input">
-        <div>
-            <h3>Click and play more awesome tracks here!</h3>
-            <form id="track-form" method="post" action="/">
-                {% for file in files %}
-                    <div class="formbtn">
-                        <input class="input" type="submit" name="name" value="{{ file.name }}"></input>
+        <form class="files" id="my-form" method="post" action="/">
+            <div id="file-selection">
+                <h3>Click and play more awesome tracks here!</h3>
+                <fieldset id="track-form">
+                            {% for file in files %}
+                                <div class="formbtn">
+                                    <label class="input" for="{{ file.name }}"><input class="small-btn" type="radio" name="name" id="{{ file.name }}" value="{{file.name}}"></input>{{file.name}}</label>
+                                </div>
+                            {% endfor %}
+                </fieldset>
+            </div>
+            <div id="music-selection">
+                <fieldset id="music">
+                    <h3>Select a style of music:</h3>
+                    <div>
+                        <input type="radio" id="up-beat" name="instruments" value="up-beat">
+                        <label for="up-beat">Up-Beat</label>
                     </div>
-                {% endfor %}
-            </form>
-        </div>
+                    <div>
+                        <input type="radio" id="lo-fi" name="instruments" value="lo-fi">
+                        <label for="lo-fi">Lo-Fi</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="chill" name="instruments" value="chill">
+                        <label for="chill">Chill</label>
+                    </div>
+                    <button type="submit" id="submitbtn">Create Mix!</button>
+                </fieldset>
+            </div>
+        </form>     
         <div id="description">
             <h3>Currently Playing: {{ current_file }}</h3>
             <h4>Description: {{ files.0.description }}</h4>
@@ -238,11 +316,17 @@
             </div>
         </div>
     </div>
-
+ 
 
     <script>
         // Gets reference to all of the audio components above
         let audioElements = document.getElementsByTagName('audio');
+        document.addEventListener("DOMContentLoaded", function() {
+            radioButtons();
+        });
+
+        console.log("{{ current_file }}");
+        console.log("{{ instruments }}");
 
         // Wait for the DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function () {
@@ -296,6 +380,7 @@
                 }
             }
         }
+
         let current_position = 0;
         const totalDuration = 181 * 1000; // 182 seconds = 3 minutes and 1 sec (conpensate for start time with 1sec)
         const totalWidth = document.getElementById('graph-container').offsetWidth - 234;
@@ -304,10 +389,7 @@
             let pb = document.getElementById('progress-bar');
             function animate(timestamp) {
                 if (!startTime) startTime = timestamp;
-                console.log("starttime: "+ startTime)
-                console.log("timestamp: "+ timestamp)
                 const elapsed = timestamp - startTime;
-                console.log("elapsed: "+ elapsed)
                 if (document.getElementById("pauseSvg").style.display === "block") {
                     current_position = (elapsed / totalDuration) * totalWidth;
                     if (current_position < totalWidth) {
@@ -320,8 +402,6 @@
                     startTime = timestamp - (current_position / totalWidth) * totalDuration;
                     requestAnimationFrame(animate);
                 }
-                console.log("current: "+ current_position)
-                console.log("total: " + totalWidth)
                 if (current_position >= totalWidth) {
                     current_position = 0;
                     pb.style.width = 0;
@@ -329,10 +409,22 @@
                     requestAnimationFrame(animate);
                 }
             }
-                        console.log(current_position)
-            console.log(totalWidth)
             requestAnimationFrame(animate);
         }
+
+        function autoSubmit()
+        {
+            const submit = document.forms['track-form']
+            submit.submit();
+        }
+
+        function radioButtons() {
+            let musicChoice = "{{ instruments }}";
+            document.getElementById(musicChoice).checked = "checked";
+            let fileChoice = "{{ current_file }}"
+            document.getElementById(fileChoice).checked = "checked";
+        }
+
 
         const max = document.getElementById('max-vol');
         const med = document.getElementById('med-vol');
@@ -359,6 +451,8 @@
                 mute.style.display = "none";
             }
         });
+
+
 
         // Function to select all parameters
         function selectAll() {

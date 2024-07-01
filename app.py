@@ -40,6 +40,9 @@ def index():
             selected_file = "Default"
         new_file = './data/' + selected_file + '.csv'
         df = pd.read_csv(new_file)
+        music_choice = request.form.get('instruments')
+        if str(music_choice) == "None":
+            music_choice = "up-beat"
 
     # Melting the dataframe to a long format for easier plotting using pandas
     df_melted = df.melt(
@@ -128,7 +131,7 @@ def index():
     print(wav_files)
     generate_mp3_files = False
     for data in desired_order:
-        target_file = selected_file + '_' + data + '.wav'
+        target_file = selected_file + '_' + music_choice + '_' + data + '.wav'
         if any(x.name == target_file for x in wav_files):
             pass
         else:
@@ -136,7 +139,7 @@ def index():
             
     if generate_mp3_files == True:
         for data in desired_order:
-            convert_to_music(selected_file, data)
+            convert_to_music(selected_file, data, music_choice)
         # for data in desired_order:
         #     subprocess.run(["ffmpeg", "-y", "-i", './static/audio/' + selected_file + '_' + data + '.mid', "-codec:a", "libmp3lame", './static/audio/' + selected_file + '_' + data + '.mp3'])
 
@@ -144,7 +147,7 @@ def index():
     plot_html = fig.to_html(include_plotlyjs='cdn')   
     
     # Rendering the graph.html template and passing the plot HTML to it using Flask
-    return render_template('graph.html', plot=plot_html, files=file_names, current_file=selected_file)
+    return render_template('graph.html', plot=plot_html, files=file_names, current_file=selected_file, instruments=music_choice)
 
 # Searches the data folder for file names and imports them
 # Return a object of the file name only (no extension ".csv")
@@ -177,34 +180,49 @@ def add_time_to_csv(filename):
     df['time'] = time
     df.to_csv('./data/' + filename + '.csv', index=False)
 
-def convert_to_music(filename, data):
-    df = pd.read_csv('./data/' + filename + '.csv')
+def only_file_names(input):
+    name_only = os.path.splitext(input)[0]
+    match = re.search(pattern, name_only)
+    return match.group(1)
 
-    # soundfont_path = './static/soundfont/Guitar.sf2'
+def convert_to_music(filename, data, music):
+    df = pd.read_csv('./data/' + filename + '.csv')
+    print(music)
+    match music:
+        case "up-beat":
+            folder_path = "./static/soundfont/up-beat"
+        case "chill":
+            folder_path = "./static/soundfont/chill"
+        case "lo-fi":
+            folder_path = "./static/soundfont/lo-fi"
+
+    instrument_names = [only_file_names(x) for x in os.scandir(folder_path)]
+    print(instrument_names)
+
     match data:
         case "sensors__pH":
-            soundfont_path = './static/soundfont/Flute.sf2'
+            soundfont_path = folder_path + '/' + instrument_names[2] + '.sf2'
             tempo = 1
         case "sensors__Cond":
-            soundfont_path = './static/soundfont/Solo Violin.sf2'
+            soundfont_path = folder_path + '/' + instrument_names[4] + '.sf2'
             tempo = 3
         case "sensors__DOpct":
-            soundfont_path = './static/soundfont/Tuba.sf2'
+            soundfont_path = folder_path + '/' + instrument_names[5] + '.sf2'
             tempo = 2
         case "sensors__Sal":
-            soundfont_path = './static/soundfont/Acoustic Guitar.sf2'
+            soundfont_path = folder_path + '/' + instrument_names[0] + '.sf2'
             tempo = 1
         case "sensors__Temp":
-            soundfont_path = './static/soundfont/Octave Choir.sf2'
+            soundfont_path = folder_path + '/' + instrument_names[3] + '.sf2'
             tempo = 1
         case "sensors__Turb":
-            soundfont_path = './static/soundfont/Acoustic Piano.sf2'
+            soundfont_path = folder_path + '/' + instrument_names[1] + '.sf2'
             tempo = 2
     
-    ages = df['time'].values   #get age values in an array
+    time = df['time'].values   #get age values in an array
     diameters = df[data].values  #get diameter values in an array
 
-    times_myrs = max(ages) - ages  #measure time from 1st impact in data
+    times_myrs = max(time) - time  #measure time from 1st impact in data
 
     myrs_per_beat = 5  #conversion factor: Myrs for each beat of music
     t_data = times_myrs/myrs_per_beat #compress impact times from Myrs to beats
@@ -218,11 +236,25 @@ def convert_to_music(filename, data):
     #          'C3','D3','E3','G3','A3',
     #          'C4','D4','E4','G4','A4']
 
-    note_names = ['C1','C2','G2',
-             'C3','E3','G3','A3','B3',
-             'D4','E4','G4','A4','B4',
-             'D5','E5','G5','A5','B5',
-             'D6','E6','F#6','G6','A6']
+
+    # note_names = ['C1','C2','G2',
+    #          'C3','E3','G3','A3','B3',
+    #          'D4','E4','G4','A4','B4',
+    #          'D5','E5','G5','A5','B5',
+    #          'D6','E6','F#6','G6','A6']
+
+    # note_names = ['C1', 'D#1', 'F#1', 'A1', 'C#2', 'E2', 'G#2',
+    #           'B2', 'D3', 'F3', 'A#3', 'C#3', 'E3', 'G3',
+    #           'A#3', 'C4', 'D#4', 'F4', 'A4', 'C#4', 'E4',
+    #           'G4', 'A#4', 'C5', 'D#5', 'F#5', 'A5', 'C#5',
+    #           'E5', 'G#5', 'B5', 'D#6', 'F6', 'A#6', 'C#6',
+    #           'E6', 'G6', 'A#6']
+
+    note_names = ['C2', 'D2', 'E2', 'F2', 'G2', 'A2', 'B2',
+              'C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3',
+              'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
+              'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5',
+              'C6', 'D6', 'E6', 'F6', 'G6', 'A6', 'B6']
     note_midis = [str2midi(n) for n in note_names] 
     n_notes = len(note_midis)
     midi_data = []
@@ -230,7 +262,7 @@ def convert_to_music(filename, data):
         note_index = round(map_value(y_data[i], 0, 1, n_notes-1, 0)) 
         midi_data.append(note_midis[note_index])
 
-    vel_min,vel_max = 35,127   #minimum and maximum note velocity
+    vel_min,vel_max = 0,127   #minimum and maximum note velocity
     vel_data = []
     for i in range(len(y_data)):
         note_velocity = round(map_value(y_data[i],0,1,vel_min, vel_max)) 
@@ -243,10 +275,10 @@ def convert_to_music(filename, data):
     for i in range(len(t_data)):
         my_midi_file.addNote(track=0, channel=0, time=t_data[i], pitch=midi_data[i], volume=vel_data[i], duration=2)
     #create and save the midi file itself
-    with open('./static/audio/' + filename + '_' + data +'.mid', "wb") as f:
+    with open('./static/audio/' + filename + '_' + music + '_' + data +'.mid', "wb") as f:
         my_midi_file.writeFile(f)
 
-    audio_path = './static/audio/' + filename + '_' + data + '.wav'
+    audio_path = './static/audio/' + filename + '_' + music + '_' + data + '.wav'
         
     # Generate the audio file using FluidSynth
     fluidsynth_command = [
@@ -254,7 +286,7 @@ def convert_to_music(filename, data):
         '-ni',  # non-interactive mode
         '-F', audio_path,  # output file
         soundfont_path,
-        './static/audio/' + filename + '_' + data + '.mid'
+        './static/audio/' + filename + '_' + music + '_' + data + '.mid'
     ]
     
     subprocess.run(fluidsynth_command)
