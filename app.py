@@ -131,7 +131,7 @@ def index():
     print(wav_files)
     generate_mp3_files = False
     for data in desired_order:
-        target_file = selected_file + '_' + music_choice + '_' + data + '.wav'
+        target_file = selected_file + '_' + music_choice + '_' + data + '_trimmed.wav'
         if any(x.name == target_file for x in wav_files):
             pass
         else:
@@ -273,7 +273,8 @@ def convert_to_music(filename, data, music):
     my_midi_file.addTempo(track=0, time=0, tempo=tempo) 
     #add midi notes
     for i in range(len(t_data)):
-        my_midi_file.addNote(track=0, channel=0, time=t_data[i], pitch=midi_data[i], volume=vel_data[i], duration=2)
+            my_midi_file.addNote(track=0, channel=0, time=t_data[i], pitch=midi_data[i], volume=vel_data[i], duration=2)
+
     #create and save the midi file itself
     with open('./static/audio/' + filename + '_' + music + '_' + data +'.mid', "wb") as f:
         my_midi_file.writeFile(f)
@@ -304,6 +305,9 @@ def convert_to_music(filename, data, music):
     
     subprocess.run(ffmpeg_command)
     
+    os.remove('./static/audio/' + filename + '_' + music + '_' + data + '.wav')
+    os.remove('./static/audio/' + filename + '_' + music + '_' + data + '.mid')
+
 
     # pygame.init()
     # pygame.mixer.music.load(filename + '.mid')

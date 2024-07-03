@@ -85,7 +85,7 @@
         }
 
         #file-selection {
-            flex: 1.25;
+            flex: 1.5;
         }
 
         #file-selection input {
@@ -98,7 +98,9 @@
         }
 
         #music-selection {
-            flex: .75;
+            flex: .8;
+            margin: 0;
+            padding: 0;
         }
 
         #track-form {
@@ -125,19 +127,25 @@
 
         .formbtn {
             display: flex;
-            align-items: center;
         }
 
-        input[type=radio]:checked{
-            background-color: black;
+        input[type=radio]:checked + label{
+            background-color: rgba(0, 0, 0, 0.185);
         }
 
-        .formbtn input[type=radio] {
+        label:has(input[type=radio]:checked){
+            background-color: rgba(0, 0, 0, 0.185);
+        }
+
+        input[type=radio] {
             cursor: pointer;
-            /* visibility: hidden; */
-            opacity: 1;
+            visibility: hidden;
             margin: 0;
             padding: 0;
+        }
+
+        label:hover {
+            background: rgba(0, 0, 0, 0.267);
         }
 
         #playSvg {
@@ -159,8 +167,6 @@
             transition: width 0.1s linear;
             background-color: rgba(128, 128, 128, 0.274);
         }
-
-
 
         #description, .files {
             height: 100%;
@@ -215,7 +221,21 @@
             outline: none;
         }
 
+        #music {
+            padding: 0;
+            margin: 0;
+        }
 
+        #submitbtn {
+            border: none;
+            outline: none;
+            width: 90%;
+            height: 2em;
+            color: white;
+            background-color: #030227;
+            border-radius: 10px;
+            margin-top: 1em;
+        }
 
     </style>
 </head>
@@ -287,7 +307,7 @@
             </div>
             <div id="music-selection">
                 <fieldset id="music">
-                    <h3>Select a style of music:</h3>
+                    <h3>Style of music:</h3>
                     <div>
                         <input type="radio" id="up-beat" name="instruments" value="up-beat">
                         <label for="up-beat">Up-Beat</label>
