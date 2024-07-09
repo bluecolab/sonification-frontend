@@ -226,6 +226,12 @@
             background-color: #030227;
             border-radius: 10px;
             margin-top: 1em;
+            cursor: pointer;
+        }
+
+        #submitbtn:disabled {
+            background-color: #0302277a;
+            cursor: default;
         }
 
     </style>
@@ -311,7 +317,7 @@
                         <input type="radio" id="chill" name="instruments" value="chill">
                         <label for="chill">Chill</label>
                     </div>
-                    <button type="submit" id="submitbtn">Create Mix!</button>
+                    <button id="submitbtn" onclick="disableBtn();">Create Mix!</button>
                 </fieldset>
             </div>
         </form>     
@@ -371,6 +377,13 @@
             });
         });
 
+        function disableBtn() {
+            const btn = document.getElementById("submitbtn");
+            btn.setAttribute('disabled', '');
+            const form = document.getElementById("my-form");
+            form.submit();
+        }
+    
         function startAudio() {
             document.getElementById("playStart").remove();
             for (let audio of audioElements) {

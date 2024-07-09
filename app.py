@@ -187,7 +187,7 @@ def only_file_names(input):
 
 def convert_to_music(filename, data, music):
     df = pd.read_csv('./data/' + filename + '.csv')
-    print(music)
+
     match music:
         case "up-beat":
             folder_path = "./static/soundfont/up-beat"
@@ -197,7 +197,6 @@ def convert_to_music(filename, data, music):
             folder_path = "./static/soundfont/lo-fi"
 
     instrument_names = [only_file_names(x) for x in os.scandir(folder_path)]
-    print(instrument_names)
 
     match data:
         case "sensors__pH":
