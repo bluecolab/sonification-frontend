@@ -151,7 +151,7 @@ def index():
 
 # Searches the data folder for file names and imports them
 # Return a object of the file name only (no extension ".csv")
-pattern = r"\\(.+)"
+pattern = r"/(.+)"
 def file_object(inputed_file):
     # import date of files
     # file = inputed_file.stat()
