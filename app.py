@@ -63,7 +63,7 @@ def index():
 
     print(fig)
 
-    plot_html = fig.to_html(include_plotlyjs='cdn')
+    plot_html = fig.to_html(include_plotlyjs='cdn', config={'displayModeBar': False})
     return render_template('graph.html', plot=plot_html)
 
 if __name__ == '__main__':
