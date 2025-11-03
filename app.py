@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from flask import Flask, render_template
+from flask_cors import CORS
 from plotnine import *
 from plotnine import theme
 
@@ -11,6 +12,7 @@ from plotnine import ggplot
 
 
 app = Flask(__name__,static_url_path='/static')
+CORS(app, origins=["http://localhost:8081"])
 
 @app.route('/')
 def index():
