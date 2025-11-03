@@ -9,10 +9,12 @@ plt.switch_backend('agg')
 import plotly.express as px
 from plotnine import ggplot
 
+import re
+
 
 
 app = Flask(__name__,static_url_path='/static')
-CORS(app, origins=["http://localhost:8081"])
+CORS(app, origins=["http://localhost:8081","https://bluecolab.github.io", re.compile(r"^https?://\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?$") ])
 
 @app.route('/')
 def index():
