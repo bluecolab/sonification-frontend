@@ -1,0 +1,6 @@
+matplotlib
+pandas
+flask
+flask_cors
+plotnine
+plotly.express
