@@ -47,37 +47,29 @@
     <div>
         <!-- Embed the Audio Files -->
         <audio id="Salinity"  loop>
-            <source src="{{ url_for('static', filename='audio/salinity.mp3') }}" type="audio/mpeg">
+            <source src="{{ url_for('static', filename='/data/set_2/audio/salinity.mp3') }}" type="audio/mpeg">
         </audio>
 
         <audio id="pH"  loop>
-            <source src="{{ url_for('static', filename='audio/ph.mp3') }}" type="audio/mpeg">
+            <source src="{{ url_for('static', filename='/data/set_2/audio/ph.mp3') }}" type="audio/mpeg">
         </audio>
 
         <audio id="Temperature(F)"  loop>
-            <source src="{{ url_for('static', filename='audio/temperature(f).mp3') }}" type="audio/mpeg">
+            <source src="{{ url_for('static', filename='/data/set_2/audio/temperature(f).mp3') }}" type="audio/mpeg">
         </audio>
 
         <audio id="Turbidity"  loop>
-            <source src="{{ url_for('static', filename='audio/turbidity.mp3') }}" type="audio/mpeg">
+            <source src="{{ url_for('static', filename='/data/set_2/audio/turbidity.mp3') }}" type="audio/mpeg">
         </audio>
 
         <audio id="Dissolved Oxygen"  loop>
-            <source src="{{ url_for('static', filename='audio/dissolvedoxygen.mp3') }}" type="audio/mpeg">
+            <source src="{{ url_for('static', filename='/data/set_2/audio/dissolvedoxygen.mp3') }}" type="audio/mpeg">
         </audio>
 
         <audio id="Conductivity"  loop>
-            <source src="{{ url_for('static', filename='audio/conductivity.mp3') }}" type="audio/mpeg">
+            <source src="{{ url_for('static', filename='/data/set_2/audio/conductivity.mp3') }}" type="audio/mpeg">
         </audio>
     </div>
-
-    <!-- <div>
-        <button onclick="selectAll()">Select All</button>
-        <button onclick="deselectAll()">Deselect All</button>
-        <button
-            onclick="setVisibility([{ index: 0, visibility: 'legendonly' }, { index: 2, visibility: true }])">Set
-            Visibility</button>
-    </div> -->
 
         <div id="playStart" style="display: flex; justify-content: center; align-items: center; padding: 20px">
         <h1 style="margin-right: 10px;">Press Play to Start Experience</h1>
@@ -121,9 +113,6 @@
                     }
 
                 }
-                //     console.log(`The value of ${visibilityIndex} (${parameterElements[visibilityIndex]}) was set to ${visibilityStatus == true ? "unmuted" : "muted"}.`)
-                //     document.getElementById("messy").innerHTML = `${document.getElementById("messy").innerHTML} <li>The value of ${visibilityIndex} (${parameterElements[visibilityIndex]}) was set to ${visibilityStatus == true ? "unmuted" : "muted"}.</li>`
-                //
             });
         });
 

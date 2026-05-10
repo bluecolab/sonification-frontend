@@ -19,7 +19,7 @@ CORS(app, origins=["http://localhost:8081","https://bluecolab.github.io", re.com
 @app.route('/')
 def index():
     # This will read the Excel file and load the data into a pandas dataframe
-    df = pd.read_csv('data.csv')
+    df = pd.read_csv('static/data/set_2/data.csv')
 
     df_melted = df.melt(
         id_vars=['timestamp'],
