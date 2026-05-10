@@ -1,6 +1,18 @@
 // Loads CSV, transforms data, and renders a stacked Plotly area chart.
 document.addEventListener('DOMContentLoaded', function() {
-  const csvUrl = 'static/data/set_2/data.csv';
+  const defaultDataset = 'set_2';
+  const datasetSelect = document.getElementById('dataset-select');
+  let activeDataset = defaultDataset;
+  const datasetDisplayNames = {};
+
+  const audioFileMap = {
+    'Salinity': 'salinity.mp3',
+    'pH': 'ph.mp3',
+    'Temperature(F)': 'temperature(f).mp3',
+    'Turbidity': 'turbidity.mp3',
+    'Dissolved Oxygen': 'dissolvedoxygen.mp3',
+    'Conductivity': 'conductivity.mp3'
+  };
 
   const desiredOrder = ['Salinity', 'pH', 'Temperature(F)', 'Turbidity', 'Dissolved Oxygen', 'Conductivity'];
 
@@ -22,14 +34,80 @@ document.addEventListener('DOMContentLoaded', function() {
     'Turbidity': '#B57BA6'
   };
 
-  fetch(csvUrl).then(resp => resp.text()).then(text => {
-    const parsed = parseCSV(text);
-    renderPlot(parsed);
-  }).catch(err => {
-    console.error('Failed to load CSV:', err);
-    const gc = document.getElementById('graph-container');
-    if (gc) gc.innerText = 'Failed to load data.';
+  if (datasetSelect) {
+    datasetSelect.value = defaultDataset;
+    datasetSelect.addEventListener('change', function(event) {
+      const selected = event.target && event.target.value;
+      if (!selected || selected === activeDataset) return;
+      activeDataset = selected;
+      updateAudioSources(activeDataset);
+      loadDataset(activeDataset);
+    });
+  }
+
+  hydrateDatasetNames().finally(() => {
+    updateAudioSources(activeDataset);
+    loadDataset(activeDataset);
   });
+
+  function hydrateDatasetNames() {
+    if (!datasetSelect) return Promise.resolve();
+
+    const options = Array.from(datasetSelect.options);
+    return Promise.all(options.map(async option => {
+      const datasetName = option.value;
+      const displayName = await fetchDatasetDisplayName(datasetName);
+      datasetDisplayNames[datasetName] = displayName;
+      option.textContent = displayName;
+    }));
+  }
+
+  function fetchDatasetDisplayName(datasetName) {
+    const metadataUrl = `static/data/${datasetName}/metadata.json`;
+    return fetch(metadataUrl)
+      .then(resp => {
+        if (!resp.ok) throw new Error('metadata fetch failed');
+        return resp.json();
+      })
+      .then(metadata => {
+        const name = metadata && typeof metadata.name === 'string' ? metadata.name.trim() : '';
+        return name || datasetName;
+      })
+      .catch(() => datasetName);
+  }
+
+  function loadDataset(datasetName) {
+    const csvUrl = `static/data/${datasetName}/data.csv`;
+    fetch(csvUrl).then(resp => resp.text()).then(text => {
+      const parsed = parseCSV(text);
+      renderPlot(parsed, datasetDisplayNames[datasetName] || datasetName);
+    }).catch(err => {
+      console.error('Failed to load CSV:', err);
+      const gc = document.getElementById('graph-container');
+      if (gc) gc.innerText = 'Failed to load data.';
+    });
+  }
+
+  function updateAudioSources(datasetName) {
+    const audioElements = document.getElementsByTagName('audio');
+    for (let audio of audioElements) {
+      const source = audio.querySelector('source');
+      if (!source) continue;
+      const fileName = audioFileMap[audio.id];
+      if (!fileName) continue;
+
+      const wasPlaying = !audio.paused;
+      const nextSrc = `static/data/${datasetName}/audio/${fileName}`;
+      if (source.getAttribute('src') !== nextSrc) {
+        source.setAttribute('src', nextSrc);
+        audio.load();
+      }
+
+      if (wasPlaying) {
+        audio.play().catch(() => {});
+      }
+    }
+  }
 
   function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/).filter(Boolean);
@@ -44,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return { header, rows };
   }
 
-  function renderPlot(parsed) {
+  function renderPlot(parsed, datasetLabel) {
     const { rows } = parsed;
     const timestamps = rows.map(r => r['timestamp']);
 
@@ -66,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const layout = {
-      title: { text: 'Winter 25-26 Data', standoff: 18 },
+      title: { text: datasetLabel, standoff: 18 },
       paper_bgcolor: '#030227',
       plot_bgcolor: '#e1e7f4e9',
       font: { color: 'white' },

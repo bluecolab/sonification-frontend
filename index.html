@@ -28,6 +28,42 @@
             margin: 30px 30px;
         }
 
+        #dataset-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 18px;
+        }
+
+        #top-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 28px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+
+        #playStart {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #playStart h1 {
+            margin-right: 10px;
+        }
+
+        #dataset-select {
+            background-color: rgba(3, 2, 39, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 16px;
+        }
+
         .main-svg {
             border-radius: 25px;
         }
@@ -35,6 +71,8 @@
 </head>
 
 <body>
+
+
     <div id="graph-container">
         <div id="plot"></div>
     </div>
@@ -65,13 +103,23 @@
         </audio>
     </div>
 
-    <div id="playStart" style="display: flex; justify-content: center; align-items: center; padding: 20px">
-        <h1 style="margin-right: 10px;">Press Play to Start Experience</h1>
-        <div onclick="toggleAudio()" style="background-color: transparent; cursor: pointer;" id="control">
-            <svg width="50px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
-                <path
-                    d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" />
-            </svg>
+    <div id="top-controls">
+        <div id="playStart">
+            <h1>Press Play to Start Experience</h1>
+            <div onclick="toggleAudio()" style="background-color: transparent; cursor: pointer;" id="control">
+                <svg width="50px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+                    <path
+                        d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" />
+                </svg>
+            </div>
+        </div>
+
+        <div id="dataset-controls">
+            <label for="dataset-select">Dataset:</label>
+            <select id="dataset-select">
+                <option value="set_2" selected>Winter 2025-2026 Data</option>
+                <option value="set_1">2022 Data</option>
+            </select>
         </div>
     </div>
 
