@@ -5,34 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
   let activeDataset = defaultDataset;
   const datasetDisplayNames = {};
 
-  const audioFileMap = {
-    'Salinity': 'salinity.mp3',
-    'pH': 'ph.mp3',
-    'Temperature(F)': 'temperature(f).mp3',
-    'Turbidity': 'turbidity.mp3',
-    'Dissolved Oxygen': 'dissolvedoxygen.mp3',
-    'Conductivity': 'conductivity.mp3'
-  };
+  // datasetConfigs holds parsed metadata for each dataset folder
+  const datasetConfigs = {};
 
-  const desiredOrder = ['Salinity', 'pH', 'Temperature(F)', 'Turbidity', 'Dissolved Oxygen', 'Conductivity'];
-
-  const multipliers = {
-    'Salinity': 30,
-    'Dissolved Oxygen': 1,
-    'Temperature(F)': 1,
-    'Conductivity': 0.3,
-    'pH': 10,
-    'Turbidity': 1
-  };
-
-  const colorMap = {
-    'Salinity': '#FF9F1C',
-    'Dissolved Oxygen': '#8FE1F4',
-    'Temperature(F)': '#169873',
-    'Conductivity': '#2081C3',
-    'pH': '#EFE9AE',
-    'Turbidity': '#B57BA6'
-  };
+  // runtime config derived strictly from metadata.json for the active dataset
+  let desiredOrder = [];
+  let multipliers = {};
+  let colorMap = {};
+  let audioFileMap = {};
 
   if (datasetSelect) {
     datasetSelect.value = defaultDataset;
@@ -45,50 +25,107 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  hydrateDatasetNames().finally(() => {
-    updateAudioSources(activeDataset);
+  hydrateDatasetNames().then(() => {
+    loadDataset(activeDataset);
+  }).catch(() => {
+    // if hydration fails, still attempt to load (will validate metadata)
     loadDataset(activeDataset);
   });
 
-  function hydrateDatasetNames() {
-    if (!datasetSelect) return Promise.resolve();
+  async function hydrateDatasetNames() {
+    if (!datasetSelect) return;
 
     const options = Array.from(datasetSelect.options);
-    return Promise.all(options.map(async option => {
+    await Promise.all(options.map(async option => {
       const datasetName = option.value;
-      const displayName = await fetchDatasetDisplayName(datasetName);
-      datasetDisplayNames[datasetName] = displayName;
-      option.textContent = displayName;
+      try {
+        const resp = await fetch(`static/data/${datasetName}/metadata.json`);
+        if (resp.ok) {
+          const meta = await resp.json();
+          datasetConfigs[datasetName] = meta;
+          const label = meta.name || datasetName;
+          datasetDisplayNames[datasetName] = label;
+          option.textContent = label;
+        } else {
+          option.textContent = datasetName;
+        }
+      } catch (e) {
+        option.textContent = datasetName;
+      }
     }));
   }
 
-  function fetchDatasetDisplayName(datasetName) {
-    const metadataUrl = `static/data/${datasetName}/metadata.json`;
-    return fetch(metadataUrl)
-      .then(resp => {
+  // Apply metadata config for a dataset. Returns true on success, false on invalid metadata.
+  async function applyDatasetConfig(datasetName) {
+    let meta = datasetConfigs[datasetName];
+    if (!meta) {
+      try {
+        const resp = await fetch(`static/data/${datasetName}/metadata.json`);
         if (!resp.ok) throw new Error('metadata fetch failed');
-        return resp.json();
-      })
-      .then(metadata => {
-        const name = metadata && typeof metadata.name === 'string' ? metadata.name.trim() : '';
-        return name || datasetName;
-      })
-      .catch(() => datasetName);
+        meta = await resp.json();
+        datasetConfigs[datasetName] = meta;
+        datasetDisplayNames[datasetName] = meta.name || datasetName;
+        const opt = datasetSelect && Array.from(datasetSelect.options).find(o => o.value === datasetName);
+        if (opt) opt.textContent = datasetDisplayNames[datasetName];
+      } catch (e) {
+        const gc = document.getElementById('graph-container');
+        if (gc) gc.innerText = `Missing metadata.json for dataset: ${datasetName}`;
+        return false;
+      }
+    }
+
+    // Expected schema: { name, desc, metadata: { VarName: { audio_file, multipliers, graphColor } }, data_headers: [...] }
+    if (!meta || !meta.metadata || !Array.isArray(meta.data_headers)) {
+      const gc = document.getElementById('graph-container');
+      if (gc) gc.innerText = `Invalid metadata.json for dataset: ${datasetName}`;
+      return false;
+    }
+
+    // derive desiredOrder from data_headers (exclude timestamp/measurement)
+    desiredOrder = meta.data_headers.filter(h => typeof h === 'string').map(h => h.trim()).filter(h => h && h.toLowerCase() !== 'timestamp' && h.toLowerCase() !== 'measurement');
+
+    multipliers = {};
+    colorMap = {};
+    audioFileMap = {};
+
+    for (const key of desiredOrder) {
+      const cfg = meta.metadata[key];
+      if (!cfg) {
+        const gc = document.getElementById('graph-container');
+        if (gc) gc.innerText = `Missing sensor metadata for '${key}' in ${datasetName}`;
+        return false;
+      }
+      multipliers[key] = cfg.multipliers;
+      colorMap[key] = cfg.graphColor;
+      audioFileMap[key] = cfg.audio_file;
+    }
+
+    return true;
   }
 
-  function loadDataset(datasetName) {
+  async function loadDataset(datasetName) {
+    const ok = await applyDatasetConfig(datasetName);
+    if (!ok) return;
+
     const csvUrl = `static/data/${datasetName}/data.csv`;
-    fetch(csvUrl).then(resp => resp.text()).then(text => {
+    try {
+      const resp = await fetch(csvUrl);
+      if (!resp.ok) throw new Error('csv fetch failed');
+      const text = await resp.text();
       const parsed = parseCSV(text);
-      renderPlot(parsed, datasetDisplayNames[datasetName] || datasetName);
-    }).catch(err => {
+      const label = datasetDisplayNames[datasetName] || (datasetConfigs[datasetName] && datasetConfigs[datasetName].name) || datasetName;
+      renderPlot(parsed, label);
+    } catch (err) {
       console.error('Failed to load CSV:', err);
       const gc = document.getElementById('graph-container');
       if (gc) gc.innerText = 'Failed to load data.';
-    });
+    }
   }
 
-  function updateAudioSources(datasetName) {
+  async function updateAudioSources(datasetName) {
+    const ok = await applyDatasetConfig(datasetName);
+    if (!ok) return;
+
     const audioElements = document.getElementsByTagName('audio');
     for (let audio of audioElements) {
       const source = audio.querySelector('source');

@@ -1,3 +1,45 @@
 {
-    "name": "August 2025 - January 2026 Choate Pond Data"
+    "name": "August 2025 - January 2026 Choate Pond Data",
+    "desc": "Alan data",
+    "metadata": {
+        "Salinity": {
+            "audio_file": "salinity.mp3",
+            "multipliers": 30,
+            "graphColor": "#FF9F1C"
+        },
+        "pH": {
+            "audio_file": "ph.mp3",
+            "multipliers": 10,
+            "graphColor": "#EFE9AE"
+        },
+        "Temperature(F)": {
+            "audio_file": "temperature(f).mp3",
+            "multipliers": 1,
+            "graphColor": "#169873"
+        },
+        "Turbidity": {
+            "audio_file": "turbidity.mp3",
+            "multipliers": 1,
+            "graphColor": "#B57BA6"
+        },
+        "Dissolved Oxygen": {
+            "audio_file": "dissolvedoxygen.mp3",
+            "multipliers": 1,
+            "graphColor": "#8FE1F4"
+        },
+        "Conductivity": {
+            "audio_file": "conductivity.mp3",
+            "multipliers": 0.3,
+            "graphColor": "#2081C3"
+        }
+    },
+    "data_headers": [
+        "timestamp",
+        "Salinity",
+        "pH",
+        "Temperature(F)",
+        "Turbidity",
+        "Dissolved Oxygen",
+        "Conductivity"
+    ]
 }
