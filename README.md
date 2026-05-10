@@ -1,2 +1,3 @@
-# sonification-flask
-flask site implementing sonification
+# Sonification Frontend
+
+Frontend for sonification
